@@ -1,5 +1,7 @@
 {
+  inputs,
   pkgs,
+  self,
   system,
   nix-flake-tests,
 }:
@@ -24,3 +26,9 @@ in
   inherit system nix setsid;
   inherit (pkgs) jq writeShellScriptBin;
 })
+// pkgs.lib.optionalAttrs (system == "x86_64-linux") {
+  vm_beacon = import ./beacon-vm.nix {
+    inherit inputs pkgs system;
+    skarabox = self;
+  };
+}

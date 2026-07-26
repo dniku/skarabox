@@ -11,6 +11,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
     };
@@ -139,7 +144,13 @@
             };
 
             checks = import ./tests {
-              inherit pkgs system nix-flake-tests;
+              inherit
+                inputs
+                pkgs
+                self
+                system
+                nix-flake-tests
+                ;
             };
 
             # Used to experiment with ruamel library.

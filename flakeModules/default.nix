@@ -388,11 +388,13 @@ in
                     let
                       targetPkgs = import inputs.nixpkgs { system = targetSystem; };
 
-                      iso = inputs.nixos-generators.nixosGenerate {
+                      isoSystem = inputs.nixpkgs.lib.nixosSystem {
                         system = targetSystem;
-                        format = "install-iso";
-
                         modules = [
+                          inputs.nixos-generators.nixosModules.install-iso
+                        ]
+                        ++ cfg'.extraBeaconModules
+                        ++ [
                           (beacon-module hostCfg)
                           (
                             { lib, modulesPath, ... }:
@@ -431,10 +433,12 @@ in
                           )
                         ];
                       };
+                      beaconSystem = isoSystem.config.system.build.toplevel;
+                      iso = isoSystem.config.system.build.isoImage;
                       nixos-qemu = targetPkgs.callPackage "${pkgs.path}/nixos/lib/qemu-common.nix" { };
                       qemu = nixos-qemu.qemuBinary pkgs.qemu;
                     in
-                    pkgs.writeShellScriptBin "beacon-vm" ''
+                    (pkgs.writeShellScriptBin "beacon-vm" ''
                       diskRoot1=.skarabox-tmp/diskRoot1.qcow2
                       diskRoot2=.skarabox-tmp/diskRoot2.qcow2
                       diskData1=.skarabox-tmp/diskData1.qcow2
@@ -452,7 +456,7 @@ in
                       guestbootport=${toString hostCfg.skarabox.boot.sshPort}
                       hostbootport=${toString cfg'.sshBootPort}
 
-                      ${qemu} \
+                        ${qemu} \
                         -m 2048M \
                         -device virtio-rng-pci \
                         -net nic -net user,hostfwd=tcp::''${hostport}-:''${guestport},hostfwd=tcp::''${hostbootport}-:''${guestbootport} \
@@ -468,7 +472,12 @@ in
                         --drive id=diskData2,format=qcow2,if=none,file=$diskData2 \
                         --device ide-hd,drive=diskData2,serial=sdb \
                         $@
-                    ''
+                    '').overrideAttrs
+                      (oldAttrs: {
+                        passthru = (oldAttrs.passthru or { }) // {
+                          inherit beaconSystem;
+                        };
+                      })
                   );
               in
               script (
