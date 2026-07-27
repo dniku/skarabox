@@ -24,6 +24,16 @@
       url = "github:antifuchs/nix-flake-tests";
     };
 
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    colmena = {
+      url = "github:zhaofengli/colmena";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     selfhostblocks = {
       url = "github:ibizaman/selfhostblocks";
       inputs.nix-flake-tests.follows = "nix-flake-tests";

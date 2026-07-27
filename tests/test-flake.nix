@@ -1,7 +1,9 @@
 {
   dataPool ? false,
+  deploymentTests ? false,
   inputs,
   legacyNixpkgs ? false,
+  mailserverSource ? null,
   rootDisk2 ? false,
   skarabox,
   sshBootPort ? 2223,
@@ -15,6 +17,8 @@ let
     self = testFlake;
     inherit skarabox;
     inherit (inputs)
+      colmena
+      deploy-rs
       flake-parts
       nixos-anywhere
       nixos-generators
@@ -22,12 +26,38 @@ let
       selfhostblocks
       ;
   };
+  selfhostblocksModule =
+    if mailserverSource == null then
+      inputs.selfhostblocks.nixosModules.default
+    else
+      {
+        imports = map (
+          module:
+          if module == inputs.selfhostblocks.nixosModules.mailserver then
+            builtins.scopedImport {
+              builtins = builtins // {
+                fetchGit = _: mailserverSource;
+              };
+            } module
+          else
+            module
+        ) inputs.selfhostblocks.nixosModules.default.imports;
+      };
   testFlake =
     (testInputs.flake-parts.lib.mkFlake { inputs = testInputs; } {
       systems = [ system ];
 
       imports = [
         skarabox.flakeModules.default
+      ]
+      ++ inputs.nixpkgs.lib.optionals deploymentTests [
+        skarabox.flakeModules.colmena
+        skarabox.flakeModules.deploy-rs
+        {
+          # Updating GRUB in the QEMU target takes longer than deploy-rs's
+          # 30-second default confirmation timeout.
+          flake.deploy.nodes.test.confirmTimeout = 600;
+        }
       ];
 
       skarabox.hosts.test = {
@@ -41,7 +71,7 @@ let
         sshPublicKeyPath = null;
         modules =
           inputs.nixpkgs.lib.optionals (!legacyNixpkgs) [
-            inputs.selfhostblocks.nixosModules.default
+            selfhostblocksModule
           ]
           ++ [
             (

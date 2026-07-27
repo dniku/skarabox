@@ -25,6 +25,7 @@ in
     name = "oneOSnoData";
     rootDisk2 = false;
     dataPool = false;
+    deploymentTests = true;
   };
 
   oneOStwoData = templateTest {
