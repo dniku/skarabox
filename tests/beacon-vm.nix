@@ -5,67 +5,13 @@
   system,
 }:
 let
-  testInputs = {
-    self = testFlake;
-    inherit skarabox;
-    inherit (inputs)
-      flake-parts
-      nixos-anywhere
-      nixos-generators
-      nixpkgs
-      ;
-  };
-  testFlake = (testInputs.flake-parts.lib.mkFlake { inputs = testInputs; } {
-    systems = [ system ];
-
-    imports = [
-      skarabox.flakeModules.default
-    ];
-
-    skarabox.hosts.test = {
-      nixpkgs = null;
-      inherit system;
-      hostKeyPub = ./fixtures/single-ssh-key.pub;
-      sshPrivateKeyPath = null;
-      sshPublicKeyPath = null;
-      modules = [
-        {
-          skarabox = {
-            hostname = "test";
-            username = "skarabox";
-            hashedPasswordFile = builtins.toFile "hashed-password" "!";
-            facter-config = builtins.toFile "empty-facter.json" "";
-            hostId = "00000000";
-            machineId = "00000000000000000000000000000000";
-            sshAuthorizedKeys = [ ./fixtures/single-ssh-key.pub ];
-            disks = {
-              rootPool = {
-                disk1 = "/dev/nvme0n1";
-                reservation = "500M";
-                bootloader = "uefi";
-              };
-              dataPool = {
-                enable = false;
-                disk1 = "/dev/sda";
-                disk2 = "/dev/sdb";
-                reservation = "1G";
-              };
-            };
-          };
-        }
-      ];
-      extraBeaconModules = [
-        ({ lib, modulesPath, ... }: {
-          imports = [
-            (modulesPath + "/testing/test-instrumentation.nix")
-          ];
-          users.users.root.hashedPasswordFile = lib.mkForce null;
-        })
-      ];
-    };
-  }) // {
-    inputs = testInputs;
-  };
+  testFlake =
+    (import ./test-flake.nix {
+      inherit inputs skarabox system;
+      # Keep host forwards distinct from the other VM checks.
+      sshPort = 8222;
+      sshBootPort = 8223;
+    }).flake;
   beaconVM = testFlake.packages.${system}.test-beacon-vm;
 in
 pkgs.testers.runNixOSTest {
@@ -80,7 +26,7 @@ pkgs.testers.runNixOSTest {
     beacon_system = "${beaconVM.beaconSystem}"
 
     beacon = create_machine(
-        start_command="${pkgs.lib.getExe beaconVM}",
+        start_command="exec ${pkgs.lib.getExe beaconVM}",
         name="beacon",
     )
     driver.machines_qemu.append(beacon)

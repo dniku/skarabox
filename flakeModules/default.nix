@@ -456,7 +456,7 @@ in
                       guestbootport=${toString hostCfg.skarabox.boot.sshPort}
                       hostbootport=${toString cfg'.sshBootPort}
 
-                        ${qemu} \
+                        exec ${qemu} \
                         -m 2048M \
                         -device virtio-rng-pci \
                         -net nic -net user,hostfwd=tcp::''${hostport}-:''${guestport},hostfwd=tcp::''${hostbootport}-:''${guestbootport} \

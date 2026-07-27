@@ -24,6 +24,12 @@
       url = "github:antifuchs/nix-flake-tests";
     };
 
+    selfhostblocks = {
+      url = "github:ibizaman/selfhostblocks";
+      inputs.nix-flake-tests.follows = "nix-flake-tests";
+      inputs.nmdsrc.follows = "nmdsrc";
+    };
+
     nmdsrc = {
       url = "git+https://git.sr.ht/~rycee/nmd";
       flake = false;
