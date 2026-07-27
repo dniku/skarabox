@@ -31,4 +31,12 @@ in
     inherit inputs pkgs system;
     skarabox = self;
   };
+  template = import ./template.nix {
+    inherit pkgs;
+    inherit (self.packages.${system})
+      gen-new-host
+      sops-add-main-key
+      sops-create-main-key
+      ;
+  };
 }
