@@ -96,8 +96,10 @@ pkgs.testers.runNixOSTest {
       # Nested Nix needs 2 GiB RAM; deploy-rs also needs 2 GiB disk and 4 GiB RAM.
       diskSize = if fullScenario then 2 * 1024 else 1024;
       memorySize = if fullScenario then 4096 else 2048;
-      # Installation reads a large closure from the host store over 9p.
-      msize = 32 * 1024;
+      # Installation reads a large closure; use an image instead of a 9p mount.
+      useNixStoreImage = true;
+      # Generated flake commands need a writable, disk-backed store overlay.
+      writableStore = true;
       writableStoreUseTmpfs = false;
     };
   };
