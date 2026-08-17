@@ -93,6 +93,7 @@ pkgs.testers.runNixOSTest {
       ++ templateSources
       ++ pkgs.lib.optional (hostNixpkgs != null) hostNixpkgs
       ++ pkgs.lib.optionals fullScenario ([ colmenaTargetSystem ] ++ deploymentInputs);
+      cores = 2;
       # Nested Nix needs 2 GiB RAM; deploy-rs also needs 2 GiB disk and 4 GiB RAM.
       diskSize = if fullScenario then 2 * 1024 else 1024;
       memorySize = if fullScenario then 4096 else 2048;
