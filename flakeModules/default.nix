@@ -415,7 +415,7 @@ in
                                   options = [
                                     "trans=virtio"
                                     "version=9p2000.L"
-                                    "msize=16384"
+                                    "msize=32768"
                                     "x-systemd.requires=modprobe@9pnet_virtio.service"
                                     "cache=loose"
                                   ];
