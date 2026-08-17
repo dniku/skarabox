@@ -93,9 +93,10 @@ pkgs.testers.runNixOSTest {
       ++ templateSources
       ++ pkgs.lib.optional (hostNixpkgs != null) hostNixpkgs
       ++ pkgs.lib.optionals fullScenario ([ colmenaTargetSystem ] ++ deploymentInputs);
-      # Nested Nix needs 2 GiB RAM; deploy-rs also needs 2 GiB disk and 4 GiB RAM.
+      # Nested Nix needs 2 GiB RAM; deploy-rs also needs 2 GiB disk.
       diskSize = if fullScenario then 2 * 1024 else 1024;
-      memorySize = if fullScenario then 4096 else 2048;
+      # Test whether extra guest memory improves 9p caching.
+      memorySize = if fullScenario then 6144 else 2048;
       # Installation reads a large closure from the host store over 9p.
       msize = 32 * 1024;
       writableStoreUseTmpfs = false;
