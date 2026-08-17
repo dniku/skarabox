@@ -98,6 +98,7 @@ pkgs.testers.runNixOSTest {
       memorySize = if fullScenario then 4096 else 2048;
       # Installation reads a large closure from the host store over 9p.
       msize = 32 * 1024;
+      nixStore9pCache = "fscache";
       writableStoreUseTmpfs = false;
     };
   };
